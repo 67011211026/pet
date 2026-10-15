@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+    <!-- Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">
+                    <i class="fa-solid fa-paw"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-slate-900 tracking-tight">Pet Hotel & Daycare</span>
+                    <span class="text-xs block text-slate-500">ระบบจัดการฝากเลี้ยงสัตว์เลี้ยง</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-semibold text-slate-800">{{ .UserName }}</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                        <i class="fa-solid fa-user-check mr-1 text-[10px]"></i> {{ .UserRole }}
+                    </span>
+                </div>
+                {{ if eq .UserRole "admin" }}
+                <a href="/admin" class="px-3 py-1.5 text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition border border-indigo-200">
+                    <i class="fa-solid fa-gauge-high mr-1"></i> Admin Panel
+                </a>
+                {{ end }}
+                <a href="/logout" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 rounded-lg transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> ออกจากระบบ
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <!-- Notification Alerts -->
+        {{ if .PetAdded }}
+        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-3 text-sm">
+            <i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>
+            <span>ลงทะเบียนสัตว์เลี้ยงตัวใหม่สำเร็จแล้ว!</span>
+        </div>
+        {{ end }}
+        {{ if .PetUpdated }}
+        <div class="p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl flex items-center gap-3 text-sm">
+            <i class="fa-solid fa-circle-check text-blue-500 text-lg"></i>
+            <span>อัปเดตข้อมูลสัตว์เลี้ยงเรียบร้อยแล้ว</span>
+        </div>
+        {{ end }}
+        {{ if .PetDeleted }}
+        <div class="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl flex items-center gap-3 text-sm">
+            <i class="fa-solid fa-trash-can text-amber-500 text-lg"></i>
+            <span>ลบข้อมูลสัตว์เลี้ยงเรียบร้อยแล้ว</span>
+        </div>
+        {{ end }}
+        {{ if .BookSuccess }}
+        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-3 text-sm">
+            <i class="fa-solid fa-bell text-emerald-500 text-lg"></i>
+            <span>ส่งคำขอจองห้องพักสำเร็จแล้ว! โปรดรอเจ้าหน้าที่ตรวจสอบและอนุมัติ</span>
+        </div>
+        {{ end }}
+
+        <!-- Quick Actions Banner -->
+        <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-6 sm:p-8 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <h2 class="text-2xl font-bold">ยินดีต้อนรับ, {{ .UserName }}! 👋</h2>
+                <p class="text-amber-100 text-sm mt-1 max-w-xl">
+                    จัดการข้อมูลสัตว์เลี้ยงของคุณ จองห้องพักล่วงหน้า และติดตามสถานะการดูแลอย่างปลอดภัย
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-3 w-full md:w-auto">
+                <a href="/pets/new" 
+                    class="flex-1 md:flex-none px-4 py-2.5 bg-white text-amber-700 hover:bg-amber-50 rounded-xl font-medium text-sm transition shadow flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paw"></i>
+                    ฟอร์ม 1: ลงทะเบียนสัตว์เลี้ยง
+                </a>
+                <a href="/bookings/new" 
+                    class="flex-1 md:flex-none px-4 py-2.5 bg-amber-900/40 hover:bg-amber-900/60 text-white rounded-xl font-medium text-sm transition border border-white/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    ฟอร์ม 2: จองห้องฝากเลี้ยง
+                </a>
+            </div>
+        </div>
+
+        <!-- Section 1: My Pets -->
+        <section class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                        <i class="fa-solid fa-dog"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">สัตว์เลี้ยงของฉัน</h3>
+                        <p class="text-xs text-slate-500">ข้อมูลสัตว์เลี้ยงทั้งหมดที่คุณลงทะเบียนไว้ (IDOR Protected)</p>
+                    </div>
+                </div>
+                <a href="/pets/new" class="text-xs font-semibold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition">
+                    + เพิ่มสัตว์เลี้ยง
+                </a>
+            </div>
+
+            {{ if .Pets }}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {{ range .Pets }}
+                <div class="border border-slate-200 rounded-xl p-5 hover:border-amber-300 hover:shadow-md transition bg-gradient-to-br from-white to-slate-50 relative group">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl">
+                                {{ if eq .PetType "cat" }}
+                                    <i class="fa-solid fa-cat"></i>
+                                {{ else }}
+                                    <i class="fa-solid fa-dog"></i>
+                                {{ end }}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-base">{{ .Name }}</h4>
+                                <span class="text-xs text-slate-500 uppercase tracking-wider font-semibold">{{ .PetType }} • {{ .Breed }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs">
+                        <p class="text-slate-500 font-medium">ข้อควรระวัง / อาหารที่แพ้:</p>
+                        <p class="text-slate-700 mt-1 bg-white p-2.5 rounded-lg border border-slate-100 min-h-[40px]">
+                            {{ if .AllergiesNotes }}{{ .AllergiesNotes }}{{ else }}<span class="text-slate-400 italic">ไม่มีข้อมูลพิเศษ</span>{{ end }}
+                        </p>
+                    </div>
+
+                    <div class="mt-4 pt-3 flex items-center justify-end gap-2 text-xs border-t border-slate-100">
+                        <a href="/pets/edit/{{ .ID }}" class="px-2.5 py-1 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-md transition font-medium">
+                            <i class="fa-solid fa-pen-to-square mr-1"></i> แก้ไข
+                        </a>
+                        <form action="/pets/delete/{{ .ID }}" method="POST" onsubmit="return confirm('ยืนยันลบข้อมูล {{ .Name }} หรือไม่?');">
+                            <button type="submit" class="px-2.5 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition font-medium">
+                                <i class="fa-solid fa-trash-can mr-1"></i> ลบ
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+            {{ else }}
+            <div class="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                <i class="fa-solid fa-paw text-3xl text-slate-300 mb-2"></i>
+                <p class="text-slate-500 text-sm">ยังไม่มีสัตว์เลี้ยงที่ลงทะเบียนไว้</p>
+                <a href="/pets/new" class="inline-block mt-3 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg shadow-sm">
+                    ลงทะเบียนสัตว์เลี้ยงตัวแรก
+                </a>
+            </div>
+            {{ end }}
+        </section>
+
+        <!-- Section 2: My Bookings -->
+        <section class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">ประวัติและการจองห้องพัก</h3>
+                        <p class="text-xs text-slate-500">ติดตามรายการจองห้องพักฝากเลี้ยงทั้งหมดของคุณ</p>
+                    </div>
+                </div>
+                <a href="/bookings/new" class="text-xs font-semibold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition">
+                    + จองห้องใหม่
+                </a>
+            </div>
+
+            {{ if .Bookings }}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
+                            <th class="py-3 px-4 font-semibold">รหัสการจอง</th>
+                            <th class="py-3 px-4 font-semibold">สัตว์เลี้ยง</th>
+                            <th class="py-3 px-4 font-semibold">ห้องพัก</th>
+                            <th class="py-3 px-4 font-semibold">วันเข้า - วันออก</th>
+                            <th class="py-3 px-4 font-semibold">ยอดรวม</th>
+                            <th class="py-3 px-4 font-semibold">สถานะ</th>
+                            <th class="py-3 px-4 font-semibold text-right">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {{ range .Bookings }}
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="py-3.5 px-4 font-mono font-medium text-slate-700">#BK-{{ .ID }}</td>
+                            <td class="py-3.5 px-4">
+                                <span class="font-medium text-slate-800">{{ .Pet.Name }}</span>
+                                <span class="block text-xs text-slate-400">{{ .Pet.PetType }}</span>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="font-medium text-slate-800">{{ .Room.RoomNumber }}</span>
+                                <span class="block text-xs text-slate-500">{{ .Room.RoomType }}</span>
+                            </td>
+                            <td class="py-3.5 px-4 text-xs text-slate-600">
+                                <span class="font-semibold text-slate-800">{{ .CheckInDate.Format "02/01/2006" }}</span>
+                                <span class="text-slate-400 mx-1">ถึง</span>
+                                <span class="font-semibold text-slate-800">{{ .CheckOutDate.Format "02/01/2006" }}</span>
+                            </td>
+                            <td class="py-3.5 px-4 font-semibold text-amber-600">฿{{ printf "%.2f" .TotalPrice }}</td>
+                            <td class="py-3.5 px-4">
+                                {{ if eq .Status "approved" }}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                    <i class="fa-solid fa-circle-check mr-1.5 text-[10px]"></i> อนุมัติแล้ว
+                                </span>
+                                {{ else if eq .Status "pending" }}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                    <i class="fa-solid fa-clock mr-1.5 text-[10px]"></i> รออนุมัติ
+                                </span>
+                                {{ else if eq .Status "rejected" }}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">
+                                    <i class="fa-solid fa-circle-xmark mr-1.5 text-[10px]"></i> ไม่อนุมัติ / ยกเลิก
+                                </span>
+                                {{ else }}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                    <i class="fa-solid fa-flag-checkered mr-1.5 text-[10px]"></i> เสร็จสิ้น
+                                </span>
+                                {{ end }}
+                            </td>
+                            <td class="py-3.5 px-4 text-right">
+                                {{ if eq .Status "pending" }}
+                                <form action="/bookings/cancel/{{ .ID }}" method="POST" onsubmit="return confirm('ยืนยันยกเลิกคำขอจองห้องนี้หรือไม่?');">
+                                    <button type="submit" class="text-xs text-rose-600 hover:text-rose-800 font-medium hover:underline">
+                                        ยกเลิกคำขอ
+                                    </button>
+                                </form>
+                                {{ else }}
+                                <span class="text-xs text-slate-400">-</span>
+                                {{ end }}
+                            </td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+            {{ else }}
+            <div class="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                <i class="fa-solid fa-calendar-xmark text-3xl text-slate-300 mb-2"></i>
+                <p class="text-slate-500 text-sm">ยังไม่มีรายการจองห้องพักในขณะนี้</p>
+                <a href="/bookings/new" class="inline-block mt-3 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg shadow-sm">
+                    เริ่มจองห้องฝากเลี้ยง
+                </a>
+            </div>
+            {{ end }}
+        </section>
+    </main>
+</body>
+</html>

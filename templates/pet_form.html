@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+    <header class="bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="/dashboard" class="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition text-sm font-medium">
+                <i class="fa-solid fa-arrow-left"></i>
+                กลับสู่หน้าแดชบอร์ด
+            </a>
+            <span class="text-xs text-slate-400 font-mono">Form 1: Pet Registration</span>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200/80 p-6 sm:p-8">
+            <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-paw"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900">
+                        {{ if .IsEdit }}แก้ไขข้อมูลสัตว์เลี้ยง{{ else }}ฟอร์ม 1: ลงทะเบียนสัตว์เลี้ยงใหม่{{ end }}
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-0.5">กรอกข้อมูลสัตว์เลี้ยงของคุณเพื่อนำไปใช้ในการจองห้องพัก</p>
+                </div>
+            </div>
+
+            {{ if .Error }}
+            <div class="mb-5 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-center gap-3">
+                <i class="fa-solid fa-circle-exclamation text-rose-500 text-base"></i>
+                <span>{{ .Error }}</span>
+            </div>
+            {{ end }}
+
+            <form action="{{ if .IsEdit }}/pets/edit/{{ .Pet.ID }}{{ else }}/pets/new{{ end }}" method="POST" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">ชื่อสัตว์เลี้ยง *</label>
+                    <input type="text" name="name" required placeholder="เช่น ลัคกี้, โกโก้, มอมแมม" 
+                        value="{{ if .IsEdit }}{{ .Pet.Name }}{{ end }}"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">ประเภทสัตว์เลี้ยง *</label>
+                        <select name="pet_type" required 
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm bg-white">
+                            <option value="dog" {{ if and .IsEdit (eq .Pet.PetType "dog") }}selected{{ end }}>สุนัข (Dog)</option>
+                            <option value="cat" {{ if and .IsEdit (eq .Pet.PetType "cat") }}selected{{ end }}>แมว (Cat)</option>
+                            <option value="other" {{ if and .IsEdit (eq .Pet.PetType "other") }}selected{{ end }}>สัตว์เลี้ยงอื่นๆ (Other)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">สายพันธุ์ (Breed)</label>
+                        <input type="text" name="breed" placeholder="เช่น Golden Retriever, Scottish Fold" 
+                            value="{{ if .IsEdit }}{{ .Pet.Breed }}{{ end }}"
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        ข้อควรระวัง / อาหารที่แพ้ / โรคประจำตัว
+                    </label>
+                    <textarea name="allergies_notes" rows="3" placeholder="เช่น แพ้เนื้อไก่, ต้องกินยาวันละ 2 เวลา, นิสัยขี้ตกใจเสียงฟ้าร้อง"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm">{{ if .IsEdit }}{{ .Pet.AllergiesNotes }}{{ end }}</textarea>
+                    <p class="text-xs text-slate-400 mt-1">ข้อมูลนี้จะช่วยให้พี่เลี้ยงดูแลน้องได้อย่างปลอดภัยและถูกวิธี</p>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <a href="/dashboard" class="px-5 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                        ยกเลิก
+                    </a>
+                    <button type="submit" 
+                        class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm rounded-xl transition shadow-md shadow-amber-200 flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        {{ if .IsEdit }}บันทึกการแก้ไข{{ else }}ลงทะเบียนสัตว์เลี้ยง{{ end }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

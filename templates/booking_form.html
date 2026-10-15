@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+    <header class="bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="/dashboard" class="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition text-sm font-medium">
+                <i class="fa-solid fa-arrow-left"></i>
+                กลับสู่หน้าแดชบอร์ด
+            </a>
+            <span class="text-xs text-slate-400 font-mono">Form 2: Room Reservation</span>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200/80 p-6 sm:p-8">
+            <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900">ฟอร์ม 2: จองห้องฝากเลี้ยง</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">เลือกสัตว์เลี้ยงและประเภทห้องพัก พร้อมระบุวันที่เข้าพัก</p>
+                </div>
+            </div>
+
+            {{ if .Error }}
+            <div class="mb-5 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-center gap-3">
+                <i class="fa-solid fa-circle-exclamation text-rose-500 text-base"></i>
+                <span>{{ .Error }}</span>
+            </div>
+            {{ end }}
+
+            {{ if not .Pets }}
+            <div class="p-6 bg-amber-50 rounded-2xl border border-amber-200 text-center">
+                <i class="fa-solid fa-paw text-3xl text-amber-500 mb-2"></i>
+                <h3 class="font-bold text-slate-800">คุณยังไม่มีสัตว์เลี้ยงในระบบ</h3>
+                <p class="text-xs text-slate-600 mt-1 mb-4">ต้องลงทะเบียนสัตว์เลี้ยงของคุณอย่างน้อย 1 ตัวก่อนจึงจะสามารถจองห้องพักได้</p>
+                <a href="/pets/new" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold shadow-sm transition">
+                    <i class="fa-solid fa-plus"></i> ไปที่ฟอร์ม 1 เพื่อลงทะเบียนสัตว์เลี้ยง
+                </a>
+            </div>
+            {{ else }}
+
+            <form action="/bookings/new" method="POST" class="space-y-5" id="bookingForm">
+                <!-- Select Pet -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">เลือกสัตว์เลี้ยงที่จะเข้าพัก *</label>
+                    <select name="pet_id" required 
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm bg-white">
+                        <option value="">-- กรุณาเลือกสัตว์เลี้ยงของคุณ --</option>
+                        {{ range .Pets }}
+                        <option value="{{ .ID }}">{{ .Name }} ({{ .PetType }} - {{ .Breed }})</option>
+                        {{ end }}
+                    </select>
+                    <p class="text-[11px] text-slate-400 mt-1"><i class="fa-solid fa-shield-halved text-emerald-500"></i> ป้องกัน IDOR: ระบบตรวจสอบสิทธิ์ความเป็นเจ้าของสัตว์เลี้ยงฝั่งเซิร์ฟเวอร์</p>
+                </div>
+
+                <!-- Select Room -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">เลือกห้องพัก *</label>
+                    <select name="room_id" id="roomSelect" required 
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm bg-white">
+                        <option value="" data-price="0">-- กรุณาเลือกห้องพัก --</option>
+                        {{ range .Rooms }}
+                        <option value="{{ .ID }}" data-price="{{ .PricePerNight }}">
+                            {{ .RoomNumber }} - {{ .RoomType }} (฿{{ printf "%.2f" .PricePerNight }}/คืน)
+                        </option>
+                        {{ end }}
+                    </select>
+                </div>
+
+                <!-- Dates Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">วันที่เริ่มเข้าพัก (Check-in) *</label>
+                        <input type="date" name="check_in_date" id="checkIn" required 
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">วันที่ออก (Check-out) *</label>
+                        <input type="date" name="check_out_date" id="checkOut" required 
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm">
+                    </div>
+                </div>
+
+                <!-- Price Estimation Card -->
+                <div class="p-4 bg-orange-50/70 rounded-xl border border-orange-200 text-xs space-y-1">
+                    <div class="flex justify-between text-slate-600">
+                        <span>จำนวนคืน:</span>
+                        <span id="nightCount" class="font-bold text-slate-800">0 คืน</span>
+                    </div>
+                    <div class="flex justify-between text-slate-600">
+                        <span>ราคาประเมินโดยประมาณ:</span>
+                        <span id="estPrice" class="font-bold text-orange-600 text-sm">฿0.00</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 pt-1">
+                        * ระบบจะตรวจสอบความพร้อมของห้องพักและป้องกันการจองซ้อนทับ (Double Booking) แบบอัตโนมัติ
+                    </p>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <a href="/dashboard" class="px-5 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                        ยกเลิก
+                    </a>
+                    <button type="submit" 
+                        class="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm rounded-xl transition shadow-md shadow-orange-200 flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        ยืนยันการจองห้องพัก
+                    </button>
+                </div>
+            </form>
+            {{ end }}
+        </div>
+    </main>
+
+    <script>
+        // Set min date to today
+        const today = new Date().toISOString().split('T')[0];
+        const checkInInput = document.getElementById('checkIn');
+        const checkOutInput = document.getElementById('checkOut');
+        const roomSelect = document.getElementById('roomSelect');
+        const nightCount = document.getElementById('nightCount');
+        const estPrice = document.getElementById('estPrice');
+
+        if (checkInInput && checkOutInput) {
+            checkInInput.min = today;
+            checkInInput.addEventListener('change', () => {
+                checkOutInput.min = checkInInput.value;
+                calculatePrice();
+            });
+            checkOutInput.addEventListener('change', calculatePrice);
+        }
+        if (roomSelect) {
+            roomSelect.addEventListener('change', calculatePrice);
+        }
+
+        function calculatePrice() {
+            if (!checkInInput || !checkOutInput || !roomSelect) return;
+            const start = new Date(checkInInput.value);
+            const end = new Date(checkOutInput.value);
+            const selectedOpt = roomSelect.options[roomSelect.selectedIndex];
+            const pricePerNight = parseFloat(selectedOpt.getAttribute('data-price') || 0);
+
+            if (checkInInput.value && checkOutInput.value && end > start) {
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                nightCount.innerText = diffDays + " คืน";
+                estPrice.innerText = "฿" + (diffDays * pricePerNight).toLocaleString('th-TH', {minimumFractionDigits: 2});
+            } else {
+                nightCount.innerText = "0 คืน";
+                estPrice.innerText = "฿0.00";
+            }
+        }
+    </script>
+</body>
+</html>

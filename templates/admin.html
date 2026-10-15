@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800">
+    <!-- Navbar -->
+    <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">
+                    <i class="fa-solid fa-hotel"></i>
+                </div>
+                <div>
+                    <span class="font-bold tracking-tight text-white">Pet Hotel Admin Console</span>
+                    <span class="text-xs block text-slate-400">ระบบบริหารจัดการสำหรับผู้ดูแลระบบ</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-semibold text-white">{{ .UserName }}</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500 text-white uppercase tracking-wider">
+                        ADMINISTRATOR
+                    </span>
+                </div>
+                <a href="/dashboard" class="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition">
+                    <i class="fa-solid fa-eye mr-1"></i> หน้าระบบผู้ใช้
+                </a>
+                <a href="/logout" class="px-3 py-1.5 text-xs font-medium text-rose-400 hover:text-rose-300 bg-slate-800 hover:bg-rose-950/60 rounded-lg transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> ออกจากระบบ
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {{ if .Updated }}
+        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-3 text-sm">
+            <i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>
+            <span>อัปเดตสถานะเรียบร้อยแล้ว</span>
+        </div>
+        {{ end }}
+
+        <!-- Stats Overview Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">คำขอรออนุมัติ</p>
+                    <p class="text-3xl font-extrabold text-amber-600 mt-1">{{ .PendingCount }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">อนุมัติแล้ว</p>
+                    <p class="text-3xl font-extrabold text-emerald-600 mt-1">{{ .ApprovedCount }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">สัตว์เลี้ยงในระบบ</p>
+                    <p class="text-3xl font-extrabold text-indigo-600 mt-1">{{ .TotalPets }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-paw"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">เจ้าของสัตว์เลี้ยง</p>
+                    <p class="text-3xl font-extrabold text-slate-700 mt-1">{{ .TotalUsers }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: All Booking Requests Management -->
+        <section class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">จัดการรายการจองห้องพักทั้งหมด (Bookings)</h3>
+                        <p class="text-xs text-slate-500">ตรวจสอบรายละเอียดคำขอ อนุมัติ หรือปฏิเสธการจอง</p>
+                    </div>
+                </div>
+            </div>
+
+            {{ if .Bookings }}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
+                            <th class="py-3 px-4 font-semibold">รหัส</th>
+                            <th class="py-3 px-4 font-semibold">ผู้จอง (Owner)</th>
+                            <th class="py-3 px-4 font-semibold">สัตว์เลี้ยง</th>
+                            <th class="py-3 px-4 font-semibold">ห้องพัก</th>
+                            <th class="py-3 px-4 font-semibold">ช่วงเวลาเข้าพัก</th>
+                            <th class="py-3 px-4 font-semibold">ยอดรวม</th>
+                            <th class="py-3 px-4 font-semibold">สถานะปัจจุบัน</th>
+                            <th class="py-3 px-4 font-semibold text-center">จัดการสถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {{ range .Bookings }}
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="py-3.5 px-4 font-mono font-medium text-slate-700">#BK-{{ .ID }}</td>
+                            <td class="py-3.5 px-4">
+                                <span class="font-semibold text-slate-800">{{ .User.Name }}</span>
+                                <span class="block text-xs text-slate-400">{{ .User.Email }}</span>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="font-medium text-slate-800">{{ .Pet.Name }}</span>
+                                <span class="block text-xs text-slate-500">{{ .Pet.PetType }} ({{ .Pet.Breed }})</span>
+                                {{ if .Pet.AllergiesNotes }}
+                                <span class="inline-block mt-0.5 text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                    ⚠️ {{ .Pet.AllergiesNotes }}
+                                </span>
+                                {{ end }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="font-medium text-slate-800">{{ .Room.RoomNumber }}</span>
+                                <span class="block text-xs text-slate-500">{{ .Room.RoomType }}</span>
+                            </td>
+                            <td class="py-3.5 px-4 text-xs text-slate-600">
+                                <span class="font-semibold text-slate-800">{{ .CheckInDate.Format "02/01/2006" }}</span>
+                                <span class="text-slate-400 mx-1">ถึง</span>
+                                <span class="font-semibold text-slate-800">{{ .CheckOutDate.Format "02/01/2006" }}</span>
+                            </td>
+                            <td class="py-3.5 px-4 font-bold text-indigo-600">฿{{ printf "%.2f" .TotalPrice }}</td>
+                            <td class="py-3.5 px-4">
+                                {{ if eq .Status "approved" }}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                    <i class="fa-solid fa-circle-check mr-1.5 text-[10px]"></i> อนุมัติแล้ว
+                                </span>
+                                {{ else if eq .Status "pending" }}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                    <i class="fa-solid fa-clock mr-1.5 text-[10px]"></i> รออนุมัติ
+                                </span>
+                                {{ else if eq .Status "rejected" }}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">
+                                    <i class="fa-solid fa-circle-xmark mr-1.5 text-[10px]"></i> ปฏิเสธ / ยกเลิก
+                                </span>
+                                {{ else }}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                    <i class="fa-solid fa-flag-checkered mr-1.5 text-[10px]"></i> เสร็จสิ้น
+                                </span>
+                                {{ end }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <form action="/admin/bookings/{{ .ID }}/status" method="POST" class="flex items-center justify-center gap-1.5">
+                                    {{ if eq .Status "pending" }}
+                                    <button type="submit" name="status" value="approved" 
+                                        class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+                                        อนุมัติ
+                                    </button>
+                                    <button type="submit" name="status" value="rejected" 
+                                        class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+                                        ปฏิเสธ
+                                    </button>
+                                    {{ else if eq .Status "approved" }}
+                                    <button type="submit" name="status" value="completed" 
+                                        class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+                                        สิ้นสุดบริการ
+                                    </button>
+                                    <button type="submit" name="status" value="rejected" 
+                                        class="px-2 py-1 bg-slate-200 hover:bg-rose-100 hover:text-rose-700 text-slate-600 text-xs font-medium rounded-lg transition">
+                                        ยกเลิก
+                                    </button>
+                                    {{ else }}
+                                    <span class="text-xs text-slate-400">เสร็จสิ้นแล้ว</span>
+                                    {{ end }}
+                                </form>
+                            </td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+            {{ else }}
+            <p class="text-center py-8 text-slate-400 text-sm">ยังไม่มีรายการจองห้องพักในระบบ</p>
+            {{ end }}
+        </section>
+
+        <!-- Section 2: Manage Room Availability -->
+        <section class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center">
+                        <i class="fa-solid fa-door-open"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">จัดการสถานะห้องพัก (Room Status Control)</h3>
+                        <p class="text-xs text-slate-500">ปรับสถานะเปิดให้บริการ (Available) หรือปิดปรับปรุง (Maintenance)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {{ range .Rooms }}
+                <div class="border rounded-xl p-4 {{ if eq .Status "available" }}border-emerald-200 bg-emerald-50/30{{ else }}border-amber-200 bg-amber-50/30{{ end }}">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="text-xs font-mono font-bold text-slate-500">{{ .RoomNumber }}</span>
+                            <h4 class="font-bold text-slate-800 mt-0.5">{{ .RoomType }}</h4>
+                            <p class="text-xs text-indigo-600 font-semibold mt-1">฿{{ printf "%.2f" .PricePerNight }}/คืน</p>
+                        </div>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold {{ if eq .Status "available" }}bg-emerald-100 text-emerald-800{{ else }}bg-amber-100 text-amber-800{{ end }}">
+                            {{ if eq .Status "available" }}พร้อมบริการ{{ else }}ปิดปรับปรุง{{ end }}
+                        </span>
+                    </div>
+
+                    <p class="text-[11px] text-slate-500 mt-2 line-clamp-2">{{ .Description }}</p>
+
+                    <form action="/admin/rooms/{{ .ID }}/toggle" method="POST" class="mt-4 pt-3 border-t border-slate-200/60">
+                        <button type="submit" 
+                            class="w-full py-1.5 px-3 rounded-lg text-xs font-semibold transition {{ if eq .Status "available" }}bg-amber-100 text-amber-800 hover:bg-amber-200{{ else }}bg-emerald-100 text-emerald-800 hover:bg-emerald-200{{ end }}">
+                            {{ if eq .Status "available" }}
+                            <i class="fa-solid fa-wrench mr-1"></i> ปิดปรับปรุงห้องพัก
+                            {{ else }}
+                            <i class="fa-solid fa-check mr-1"></i> เปิดให้บริการห้องพัก
+                            {{ end }}
+                        </button>
+                    </form>
+                </div>
+                {{ end }}
+            </div>
+        </section>
+    </main>
+</body>
+</html>
